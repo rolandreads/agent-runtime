@@ -1,0 +1,44 @@
+{
+  "private": true,
+  "type": "module",
+  "name": "agent-runtime",
+  "description": "Architecture showcase \u2014 not a runnable production product",
+  "scripts": {
+    "ci:validate": "bash scripts/run-ci-validation.sh",
+    "db:generate-types": "bun src/db/schema-types-generate.ts",
+    "format": "biome format --write src/  infra/  scripts/ package.json tsconfig.json biome.json",
+    "knip": "knip",
+    "lint": "biome lint src/  infra/  scripts/",
+    "lint:fix": "biome lint --write src/  infra/  scripts/",
+    "loc:prod": "bun scripts/count-production-loc.ts",
+    "secrets:scan": "bun scripts/secret-scan.ts --all",
+    "test": "bun test --parallel",
+    "test:coverage": "bun test --coverage --parallel",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.5",
+    "@types/bun": "1.4.4",
+    "knip": "6.44.1",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@discordjs/collection": "2.1.1",
+    "@discordjs/ws": "1.2.3",
+    "@earendil-works/pi-agent-core": "0.84.3",
+    "@earendil-works/pi-ai": "0.84.3",
+    "discord.js": "14.27.0",
+    "pino": "10.3.1",
+    "zod": "4.4.3"
+  },
+  "knip": {
+    "entry": [
+      "infra/comfy-worker/build.ts"
+    ],
+    "ignoreIssues": {
+      "src/db/schema-types.ts": [
+        "types"
+      ]
+    }
+  }
+}

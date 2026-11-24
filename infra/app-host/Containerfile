@@ -1,0 +1,35 @@
+FROM docker.io/oven/bun:1.4.1-alpine@sha256:2ef545220f7a886f22fcb3f2309bbd6bcf1c0aa04b7d79c31765c7aa4a13aac1 AS runtime
+
+ARG LITESTREAM_VERSION=0.5.16
+ARG LITESTREAM_X86_64_SHA256=9e29112380a942e4a62ee07773684396cb8b308dc4d67e130bef41f75e937f0a
+ARG LITESTREAM_ARM64_SHA256=678022e4103145302598e35d37f8718392d42e153feeb1e2d4a64dd0cd3aaf10
+ARG APP_UID=10001
+ARG APP_GID=10001
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates=20261020-r0 openssh-client-default=10.0_p1-r11 openssl=3.5.9-r0 \
+  && addgroup -S -g "${APP_GID}" agent-runtime \
+  && adduser -S -D -H -h /home/agent-runtime -u "${APP_UID}" -G agent-runtime agent-runtime \
+  && mkdir -p /var/lib/agent-runtime /home/agent-runtime \
+  && chown -R agent-runtime:agent-runtime /var/lib/agent-runtime /home/agent-runtime \
+  && machine_arch="$(uname -m)" \
+  && case "${machine_arch}" in \
+    x86_64) litestream_arch=x86_64; litestream_sha256="${LITESTREAM_X86_64_SHA256}" ;; \
+    aarch64) litestream_arch=arm64; litestream_sha256="${LITESTREAM_ARM64_SHA256}" ;; \
+    *) echo "unsupported architecture: ${machine_arch}" >&2; exit 1 ;; \
+  esac \
+  && wget -O /tmp/litestream.tar.gz "https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-${litestream_arch}.tar.gz" \
+  && echo "${litestream_sha256}  /tmp/litestream.tar.gz" | sha256sum -c - \
+  && tar -xzf /tmp/litestream.tar.gz -C /usr/local/bin litestream \
+  && chmod +x /usr/local/bin/litestream \
+  && rm /tmp/litestream.tar.gz
+
+ENV HOME=/tmp/agent-runtime \
+    NODE_ENV=production \
+    TMPDIR=/tmp
+
+FROM runtime
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production

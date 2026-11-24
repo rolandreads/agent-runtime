@@ -1,0 +1,4 @@
+# Collapse in PR diffs and exclude from GitHub LoC stats
+*.md linguist-generated
+*.test.ts linguist-generated
+*.snap linguist-generated

@@ -1,0 +1,24 @@
+# Local SQLite is the restart source of truth; replica is continuous backup.
+access-key-id: ${R2_DB_ACCESS_KEY_ID}
+secret-access-key: ${R2_DB_SECRET_ACCESS_KEY}
+
+# Bound, do not disable. 0s still runs one Replica.Sync() with no deadline and
+# can hang forever (TimeoutStopSec=infinity). Short-lived restarts cancel the
+# live uploader then immediately retry the same LTX key; R2 allows one write
+# per key per second, so UploadPart never returns and we only wait this cap.
+shutdown-sync-timeout: 250ms
+
+snapshot:
+  retention: 168h
+
+dbs:
+  - path: ${RUNTIME_STATE_DIR}/app.db
+    meta-path: ${RUNTIME_STATE_DIR}/litestream
+    restore-if-db-not-exists: true
+    replica:
+      type: s3
+      bucket: ${R2_DB_BUCKET}
+      path: app.db
+      endpoint: ${R2_ENDPOINT}
+      region: auto
+      auto-recover: true

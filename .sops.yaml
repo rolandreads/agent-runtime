@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: (secrets\.env|bots\.secrets\.env|infra\.secrets\.env)$
+    age: >-
+      age1portfolioexample0000000000000000000000000000000000000000000xample,
+      age1portfolioshowcase0000000000000000000000000000000000000000xample

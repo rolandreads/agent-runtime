@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+# Vast's own ComfyUI template image (flagged cached on Vast hosts). It already ships Ubuntu 24.04,
+# Python 3.12 at /venv/main, torch 2.10.0 cu130, ComfyUI v0.30.0 at /opt/workspace-internal/ComfyUI,
+# Caddy and every tool our scripts use except sshd. Only agent-runtime additions live in the layer below.
+FROM docker.io/vastai/comfy:v0.30.0-cuda-13.2-py312@sha256:6204a9aa3c6714e7d3ddbf86d806cec8e52523474cc49383015b8f4dd0fce376
+
+ENV PATH=/venv/main/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    WORKSPACE=/opt/workspace-internal
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssh-server \
+  && rm -rf /var/lib/apt/lists/* \
+  && find /etc/ssh -maxdepth 1 -type f -name 'ssh_host_*' -delete \
+  && rm -rf /opt/workspace-internal/ComfyUI/custom_nodes/ComfyUI-Manager \
+  && fetch_github_ref() { mkdir -p "$1" && curl -fsSL "$2/archive/$3.tar.gz" | tar -xz --strip-components=1 -C "$1"; } \
+  && fetch_github_ref /opt/workspace-internal/ComfyUI/custom_nodes/ComfyUI-Impact-Pack https://github.com/ltdrdata/ComfyUI-Impact-Pack 429d0159ad429e64d2b3916e6e7be9c22d025c3c \
+  && fetch_github_ref /opt/workspace-internal/ComfyUI/custom_nodes/ComfyUI-Impact-Subpack https://github.com/ltdrdata/ComfyUI-Impact-Subpack 50c7b71a6a224734cc9b21963c6d1926816a97f1 \
+  && /venv/main/bin/pip install --no-cache-dir opencv-python-headless==5.0.0.93 scikit-image==0.26.0 piexif==1.1.3 segment-anything==1.0 ultralytics==8.4.120 dill==0.4.1 \
+  && /venv/main/bin/pip uninstall -q -y opencv-python \
+  && /venv/main/bin/pip install --no-cache-dir --force-reinstall --no-deps opencv-python-headless==5.0.0.93 \
+  && ln -sf /opt/portal-aio/caddy_manager/caddy /usr/local/bin/caddy \
+  && mkdir -p /opt/agent-runtime-empty-ui /opt/agent-runtime-models/checkpoints /opt/agent-runtime-models/loras /opt/agent-runtime-models/diffusion_models /opt/agent-runtime-models/text_encoders /opt/agent-runtime-models/vae /opt/agent-runtime-models/upscale_models /opt/agent-runtime-models/ultralytics/bbox /opt/agent-runtime-models/sams \
+  && models_root=/opt/workspace-internal/ComfyUI/models \
+  && for mapping in checkpoints:checkpoints loras:loras diffusion_models:diffusion_models text_encoders:text_encoders vae:vae upscale_models:upscale_models ultralytics/bbox:ultralytics/bbox sams:sams; do name="${mapping%%:*}"; target="${mapping#*:}"; destination="$models_root/$name"; rm -rf "$destination"; mkdir -p "$(dirname "$destination")"; ln -s "/opt/agent-runtime-models/$target" "$destination"; done \
+  && rm -rf /root/.cache /tmp/* /var/tmp/*
+
+# Asset downloads use the system Python/libcurl binding so connections survive across ranges.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3-pycurl \
+  && rm -rf /var/lib/apt/lists/* \
+  && /usr/bin/python3 -c 'import pycurl; print(pycurl.version)'
+
+COPY save-image-jpeg.py /opt/workspace-internal/ComfyUI/custom_nodes/save_image_jpeg/__init__.py
+COPY bootstrap.sh /usr/local/bin/agent-runtime-worker-start
+COPY entrypoint.sh /usr/local/bin/agent-runtime-worker-entrypoint
+COPY sync-assets.sh /usr/local/bin/agent-runtime-worker-assets
+
+RUN chmod 755 /usr/local/bin/agent-runtime-worker-start /usr/local/bin/agent-runtime-worker-entrypoint /usr/local/bin/agent-runtime-worker-assets
+
+LABEL org.opencontainers.image.description="Private agent-runtime headless ComfyUI runtime"
+ENTRYPOINT ["/usr/local/bin/agent-runtime-worker-entrypoint"]
+CMD []

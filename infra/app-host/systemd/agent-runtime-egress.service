@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply agent-runtime nftables egress allowlist
+After=network-online.target firewalld.service
+Wants=network-online.target
+ConditionPathExists=/usr/local/libexec/agent-runtime/egress-nft-apply.sh
+ConditionPathExists=/var/lib/agent-runtime/.config/agent-runtime/env
+
+[Service]
+Type=oneshot
+Environment=APP_USER=agent-runtime
+Environment=APP_HOME=/var/lib/agent-runtime
+ExecStart=/usr/local/libexec/agent-runtime/egress-nft-apply.sh /var/lib/agent-runtime/.config/agent-runtime/env

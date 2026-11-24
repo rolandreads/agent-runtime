@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh agent-runtime nftables egress allowlist
+
+[Timer]
+OnActiveSec=1s
+OnUnitInactiveSec=1min
+AccuracySec=1s
+Unit=agent-runtime-egress.service
+
+[Install]
+WantedBy=timers.target

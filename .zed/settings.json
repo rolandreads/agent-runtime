@@ -1,0 +1,60 @@
+{
+  "soft_wrap": "editor_width",
+  "preferred_line_length": 110,
+  "languages": {
+    "JavaScript": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    },
+    "JSX": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    },
+    "TypeScript": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    },
+    "TSX": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    },
+    "JSON": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    },
+    "JSONC": {
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "/home/kira/.bun/bin/bunx",
+          "arguments": ["biome", "format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+[Unit]
+Description=agent-runtime Discord bot (rootless Podman)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+UMask=0077
+MemoryHigh=2560M
+MemoryMax=3G
+MemorySwapMax=0
+CPUQuota=150%
+TasksMax=512
+EnvironmentFile=%h/.config/agent-runtime/env
+ExecStartPre=/usr/bin/mkdir -p %h/.local/share/agent-runtime/data %h/.local/share/agent-runtime/ssh %h/.local/state/agent-runtime
+ExecStartPre=/usr/bin/test -r %h/.config/agent-runtime/env
+ExecStartPre=/usr/bin/test -r %h/.local/share/agent-runtime/ssh/id_ed25519
+ExecStartPre=/usr/bin/test -r %h/.local/share/agent-runtime/ssh/id_ed25519.pub
+ExecStartPre=/usr/bin/test -r %h/.local/share/agent-runtime/tls/ca.crt
+ExecStartPre=/usr/bin/test -r %h/.local/share/agent-runtime/tls/ca.key
+ExecStartPre=-/usr/bin/podman rm -f agent-runtime
+ExecStart=/usr/bin/bash %h/.local/share/agent-runtime/app/infra/app-host/podman/run.sh --rm --log-driver=none --network slirp4netns:allow_host_loopback=false,enable_ipv6=false
+ExecStop=/usr/bin/podman stop -t -1 agent-runtime
+ExecStopPost=-/usr/bin/podman rm -f agent-runtime
+Restart=always
+RestartSec=5
+RestartSteps=6
+RestartMaxDelaySec=300
+TimeoutStopSec=infinity
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceExport", "summary", "judgments"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sourceExport": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["turnsReviewed", "alignedTurns", "partialTurns", "misalignedTurns", "averageScores", "topFrictionPatterns", "positivePatterns"],
+      "properties": {
+        "turnsReviewed": { "type": "integer", "minimum": 0 },
+        "alignedTurns": { "type": "integer", "minimum": 0 },
+        "partialTurns": { "type": "integer", "minimum": 0 },
+        "misalignedTurns": { "type": "integer", "minimum": 0 },
+        "averageScores": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["semanticAlignment", "toolSelection", "toolArguments", "effortlessness"],
+          "properties": {
+            "semanticAlignment": { "type": "number", "minimum": 1, "maximum": 5 },
+            "toolSelection": { "type": "number", "minimum": 1, "maximum": 5 },
+            "toolArguments": { "type": "number", "minimum": 1, "maximum": 5 },
+            "effortlessness": { "type": "number", "minimum": 1, "maximum": 5 }
+          }
+        },
+        "topFrictionPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pattern", "count", "turnIds", "recommendation"],
+            "properties": {
+              "pattern": { "type": "string" },
+              "count": { "type": "integer", "minimum": 1 },
+              "turnIds": { "type": "array", "items": { "type": "integer" }, "uniqueItems": true },
+              "recommendation": { "type": "string" }
+            }
+          }
+        },
+        "positivePatterns": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "judgments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["turnId", "verdict", "userIntent", "expectedTools", "actualTools", "scores", "semanticDrift", "verbosityTax", "findings", "idealBehavior"],
+        "properties": {
+          "turnId": { "type": "integer" },
+          "verdict": { "enum": ["aligned", "partially_aligned", "misaligned"] },
+          "userIntent": { "type": "string" },
+          "expectedTools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "reason", "payloadExpectation"],
+              "properties": {
+                "name": { "enum": ["update_notes", "submit_response", "animate_image"] },
+                "reason": { "type": "string" },
+                "payloadExpectation": { "type": "string" }
+              }
+            }
+          },
+          "actualTools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "outcome", "assessment", "explanation"],
+              "properties": {
+                "name": { "type": "string" },
+                "outcome": { "enum": ["success", "error", "missing_result"] },
+                "assessment": { "enum": ["correct", "unnecessary", "incorrect_arguments", "execution_failed"] },
+                "explanation": { "type": "string" }
+              }
+            }
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["semanticAlignment", "toolSelection", "toolArguments", "effortlessness"],
+            "properties": {
+              "semanticAlignment": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "toolSelection": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "toolArguments": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "effortlessness": { "type": "integer", "minimum": 1, "maximum": 5 }
+            }
+          },
+          "semanticDrift": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["present", "explanation"],
+            "properties": { "present": { "type": "boolean" }, "explanation": { "type": "string" } }
+          },
+          "verbosityTax": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["present", "explanation", "naturalRequest"],
+            "properties": { "present": { "type": "boolean" }, "explanation": { "type": "string" }, "naturalRequest": { "type": "string" } }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "severity", "explanation"],
+              "properties": {
+                "type": { "enum": ["missed_tool", "unnecessary_tool", "incorrect_tool_arguments", "tool_execution_failure", "semantic_drift", "verbosity_tax", "response_mismatch", "media_delivery_failure"] },
+                "severity": { "enum": ["low", "medium", "high"] },
+                "explanation": { "type": "string" }
+              }
+            }
+          },
+          "idealBehavior": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toolSequence", "response"],
+            "properties": { "toolSequence": { "type": "array", "items": { "enum": ["update_notes", "submit_response", "animate_image"] } }, "response": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

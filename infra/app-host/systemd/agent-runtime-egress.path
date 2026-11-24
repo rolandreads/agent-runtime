@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch for agent-runtime Vast endpoint changes
+
+[Path]
+PathChanged=/var/lib/agent-runtime/.local/share/agent-runtime/data/egress-refresh-requested
+Unit=agent-runtime-egress.service
+
+[Install]
+WantedBy=paths.target
